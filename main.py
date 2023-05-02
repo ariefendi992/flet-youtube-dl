@@ -1,6 +1,7 @@
 from flet import *
 from flet_core import *
 import flet as ft
+from pytube import YouTube
 
 
 def main(page: Page):
@@ -133,6 +134,67 @@ def main(page: Page):
         ],
     )
 
+    url_text = TextField(
+        text_size=14,
+        color=colors.BLACK,
+        cursor_height=18,
+        border_color=colors.BLUE_300,
+        border=InputBorder.UNDERLINE,
+        hint_text="Enter Url Likn here",
+    )
+
+    def ytb_dl(e):
+        ytb = YouTube(url_text.value)
+        page.update()
+
+    judul = Text(value="", color=colors.BLACK, weight=FontWeight.W_500)
+    author = Text(value="", color=colors.BLACK, weight=FontWeight.W_500)
+    resolusi = Row(
+        scroll=True,
+        col={"sm": 6, "md": 4, "xl": 2},
+    )
+
+    def btn_prosess(e):
+        res = []
+        res.clear()
+        resolusi.clean()
+        ytb = YouTube(str(url_text.value))
+        judul.value = f"{ytb.title.title()}"
+        judul.update()
+        author.value = f"{ytb.author.title()}"
+        author.update()
+        print(f"judul == {ytb.title}")
+        for i in ytb.streams:
+            if i.resolution != None:
+                if i.resolution != "144p":
+                    if i.resolution != "240p":
+                        # RadioGroup(
+                        #     content=resolusi.controls.append(
+                        #         Radio(
+                        #             value=f"{i.resolution}",
+                        #             label=f"{i.resolution}",
+                        #         )
+                        #     )
+                        # )
+                        res.append(i.resolution)
+
+        res.sort()
+        jres = set(res)
+        new_resolution = list(jres)
+        print("new list = ", new_resolution)
+        for _ in range(len(jres)):
+            RadioGroup(
+                content=resolusi.controls.append(
+                    Radio(
+                        value=f"{new_resolution[_]}",
+                        label=f"{new_resolution[_]}",
+                    )
+                )
+            )
+        resolusi.update()
+        # page.update()
+        
+        
     content = ResponsiveRow(
         controls=[
             Container(
@@ -149,16 +211,9 @@ def main(page: Page):
                         Container(
                             margin=margin.only(top=0),
                             height=39,
-                            content=TextField(
-                                text_size=14,
-                                color=colors.BLACK,
-                                cursor_height=18,
-                                border_color=colors.BLUE_300,
-                                border=InputBorder.UNDERLINE,
-                                hint_text="Enter Url Likn here",
-                                on_focus=True,
-                                # filled=True,
-                            ),
+                            content=
+                            # filled=True,
+                            url_text,
                         ),
                     ],
                 ),
@@ -166,11 +221,67 @@ def main(page: Page):
         ],
     )
 
+    download = ResponsiveRow(
+        controls=[
+            Container(
+                margin=margin.only(top=120, left=12, right=12),
+                content=Column(
+                    spacing=0,
+                    controls=[
+                        Row(
+                            controls=[
+                                Container(
+                                    width=120,
+                                    content=ElevatedButton(
+                                        text="Proses", on_click=btn_prosess
+                                    ),
+                                )
+                            ],
+                            alignment=MainAxisAlignment.END,
+                        ),
+                        Row(
+                            spacing=0,
+                            controls=[
+                                Text(
+                                    value="Title : ",
+                                    color=colors.BLACK,
+                                    weight=FontWeight.W_500,
+                                ),
+                                judul,
+                            ],
+                        ),
+                        Row(
+                            spacing=0,
+                            controls=[
+                                Text(
+                                    value="Author : ",
+                                    color=colors.BLACK,
+                                    weight=FontWeight.W_500,
+                                ),
+                                author,
+                            ],
+                        ),
+                        Text(
+                            value="Resolution : ",
+                            color=colors.BLACK,
+                            weight=FontWeight.W_500,
+                        ),
+                        resolusi,
+                        Container(
+                            margin=margin.only(top=10),
+                            content=ElevatedButton(text="Download"),
+                        ),
+                    ],
+                ),
+            )
+        ]
+    )
     page.add(
         Stack(
             controls=[
                 content,
                 app_bar,
+                download,
             ]
         )
     )
